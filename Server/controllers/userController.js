@@ -43,43 +43,46 @@ exports.addPay = function(req, res){
     res.append("Access-Control-Allow-Origin", "*");
     var body = req.body;
     try{
-        if (VerifyJWT(body["token"])){
-            const parse = body["token"].split(".");
-            const token_body = JSON.parse(atob(parse[1]));
-            if ("id" in token_body && "lessons" in body && Number(body["lessons"]) >= 8 && Number(body["lessons"]) <= 128){
-                var data_in_base = {};
-                database.FindDataUsers("users", "id", token_body["id"]).then(async function(data){
-                    data_in_base["user"] = data[0];
-                    var less_user = data_in_base["user"]["lessons"]+Number(body["lessons"]);
-                    if (data_in_base["user"]["refer"] != ""){
-                        database.FindDataUsers("users", "id", data_in_base["user"]["refer"]).then(async function(data){
-                            data_in_base["refer"] = data[0];
-                            if (data_in_base["user"]["lessons"] == 0){
-                                less_user += 4;
-                                const less_refer = data_in_base["refer"]["lessons"]+4;
-                                await database.UpdateElemInDataBase("users", data_in_base["refer"]["id"], "lessons", less_refer);
-                            }
+        if ("token" in body && "lessons" in body){
+            if (VerifyJWT(body["token"])){
+                const parse = body["token"].split(".");
+                const token_body = JSON.parse(atob(parse[1]));
+                if ("id" in token_body && "lessons" in body && Number(body["lessons"]) >= 8 && Number(body["lessons"]) <= 128){
+                    var data_in_base = {};
+                    database.FindDataUsers("users", "id", token_body["id"]).then(async function(data){
+                        data_in_base["user"] = data[0];
+                        var less_user = data_in_base["user"]["lessons"]+Number(body["lessons"]);
+                        if (data_in_base["user"]["refer"] != ""){
+                            database.FindDataUsers("users", "id", data_in_base["user"]["refer"]).then(async function(data){
+                                data_in_base["refer"] = data[0];
+                                if (data_in_base["user"]["lessons"] == 0){
+                                    less_user += 4;
+                                    const less_refer = data_in_base["refer"]["lessons"]+4;
+                                    await database.UpdateElemInDataBase("users", data_in_base["refer"]["id"], "lessons", less_refer);
+                                }
+                                await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
+                            }).catch((err)=>{
+                                throw(err);
+                            });
+                        }else{
                             await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
-                        }).catch((err)=>{
-                            throw(err);
-                        });
-                    }else{
-                        await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
-                    }
-                    const create = {id: data_in_base["user"]["id"], lessons: Number(body["lessons"])};
-                    await database.CreatePay("pays", create);
-                    const out = {
-                        command: "addPay",
-                        status: "OK"
-                    }
-                    res.json(out);
-                }).catch((err)=>{
-                    throw(err);
-                });
+                        }
+                        const create = {id: data_in_base["user"]["id"], lessons: Number(body["lessons"])};
+                        await database.CreatePay("pays", create);
+                        const out = {
+                            command: "addPay",
+                            status: "OK"
+                        }
+                        res.json(out);
+                    }).catch((err)=>{
+                        throw(err);
+                    });
+                }else
+                    throw("wrong body");
             }else
-                throw("wrong body");
+                throw("wrong JWT");
         }else
-            throw("wrong JWT");
+            throw("incomplete body");
     } catch (er) {
         const out = {
             command: "addPay",
@@ -205,35 +208,40 @@ function VerifyJWT(JWT){
 
 async function VerifyCreateUserData(data){
     const out = {status: "OK"};
-    if (!(data["phone"].match(/^[0-9]+$/) != null) || data["email"].length < 7){
-        out["phone"] = "incorrect phone";
-        out["status"] = "ERROR";
-        out["reason"] = "incorrect data";
-    }
-    if (data["email"].length <= 10 || !(!!~data["email"].indexOf("@"))){
-        out["email"] = "incorrect email";
-        out["status"] = "ERROR";
-        out["reason"] = "incorrect data";
-    }
-    const fio = data["fio"].split(" ");
-    if (fio.length != 3){
-        out["fio"] = "incorrect fio";
-        out["status"] = "ERROR";
-        out["reason"] = "incorrect data";
-    }
-    if (out["status"] == "OK"){
-        var is = await database.IsThereElementInTable("users", "phone", data["phone"]);
-        if (is){
-            out["phone"] = "used";
+    if ("fio" in data && "phone" in data && "email" in data && "refer" in data){
+        if (!(data["phone"].match(/^[0-9]+$/) != null) || data["email"].length < 7){
+            out["phone"] = "incorrect phone";
             out["status"] = "ERROR";
-            out["reason"] = "used data";
+            out["reason"] = "incorrect data";
         }
-        is = await database.IsThereElementInTable("users", "email", data["email"]);
-        if (is){
-            out["email"] = "used";
+        if (data["email"].length <= 10 || !(!!~data["email"].indexOf("@"))){
+            out["email"] = "incorrect email";
             out["status"] = "ERROR";
-            out["reason"] = "used data";
+            out["reason"] = "incorrect data";
         }
+        const fio = data["fio"].split(" ");
+        if (fio.length != 3){
+            out["fio"] = "incorrect fio";
+            out["status"] = "ERROR";
+            out["reason"] = "incorrect data";
+        }
+        if (out["status"] == "OK"){
+            var is = await database.IsThereElementInTable("users", "phone", data["phone"]);
+            if (is){
+                out["phone"] = "used";
+                out["status"] = "ERROR";
+                out["reason"] = "used data";
+            }
+            is = await database.IsThereElementInTable("users", "email", data["email"]);
+            if (is){
+                out["email"] = "used";
+                out["status"] = "ERROR";
+                out["reason"] = "used data";
+            }
+        }
+    }else{
+        out["status"] = "ERROR";
+        out["reason"] = "incomplete body";
     }
     return out;
 }
