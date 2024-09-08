@@ -214,7 +214,7 @@ function VerifyJWT(JWT){
 async function VerifyCreateUserData(data){
     const out = {status: "OK"};
     if ("fio" in data && "phone" in data && "email" in data && "refer" in data){
-        if (!(data["phone"].match(/^[0-9]+$/) != null) || data["email"].length < 7){
+        if (!(data["phone"].match(/^[0-9]+$/) != null) || data["phone"].length < 7){
             out["phone"] = "incorrect";
             out["status"] = "ERROR";
             out["reason"] = "incorrect data";
