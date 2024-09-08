@@ -39,7 +39,7 @@ exports.createReferLink = async function(req, res){
     }
 }
 
-exports.addPay = function(req, res){
+exports.addPay = async function(req, res){
     res.append("Access-Control-Allow-Origin", "*");
     var body = req.body;
     try{
@@ -49,34 +49,39 @@ exports.addPay = function(req, res){
                 const token_body = JSON.parse(atob(parse[1]));
                 if ("id" in token_body && "lessons" in body && Number(body["lessons"]) >= 8 && Number(body["lessons"]) <= 128){
                     var data_in_base = {};
-                    database.FindDataUsers("users", "id", token_body["id"]).then(async function(data){
-                        data_in_base["user"] = data[0];
-                        var less_user = data_in_base["user"]["lessons"]+Number(body["lessons"]);
-                        if (data_in_base["user"]["refer"] != ""){
-                            database.FindDataUsers("users", "id", data_in_base["user"]["refer"]).then(async function(data){
-                                data_in_base["refer"] = data[0];
-                                if (data_in_base["user"]["lessons"] == 0){
-                                    less_user += 4;
-                                    const less_refer = data_in_base["refer"]["lessons"]+4;
-                                    await database.UpdateElemInDataBase("users", data_in_base["refer"]["id"], "lessons", less_refer);
-                                }
+                    var is = await database.IsThereElementInTable("users", "id", token_body["id"]);
+                    if (is)
+                        database.FindDataUsers("users", "id", token_body["id"]).then(async function(data){
+                            data_in_base["user"] = data[0];
+                            var less_user = data_in_base["user"]["lessons"]+Number(body["lessons"]);
+                            if (data_in_base["user"]["refer"] != ""){
+                                database.FindDataUsers("users", "id", data_in_base["user"]["refer"]).then(async function(data){
+                                    data_in_base["refer"] = data[0];
+                                    if (data_in_base["user"]["lessons"] == 0){
+                                        less_user += 4;
+                                        const less_refer = data_in_base["refer"]["lessons"]+4;
+                                        await database.UpdateElemInDataBase("users", data_in_base["refer"]["id"], "lessons", less_refer);
+                                    }
+                                    await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
+                                }).catch((err)=>{
+                                    throw(err);
+                                });
+                            }else{
                                 await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
-                            }).catch((err)=>{
-                                throw(err);
-                            });
-                        }else{
-                            await database.UpdateElemInDataBase("users", data_in_base["user"]["id"], "lessons", less_user);
-                        }
-                        const create = {id: data_in_base["user"]["id"], lessons: Number(body["lessons"])};
-                        await database.CreatePay("pays", create);
-                        const out = {
-                            command: "addPay",
-                            status: "OK"
-                        }
-                        res.json(out);
-                    }).catch((err)=>{
-                        throw(err);
-                    });
+                            }
+                            const create = {id: data_in_base["user"]["id"], lessons: Number(body["lessons"])};
+                            await database.CreatePay("pays", create);
+                            const out = {
+                                command: "addPay",
+                                status: "OK"
+                            }
+                            res.json(out);
+                        }).catch((err)=>{
+                            throw(err);
+                        });
+                    else{
+                        throw("wrong id");
+                    }
                 }else
                     throw("wrong body");
             }else
