@@ -210,18 +210,18 @@ async function VerifyCreateUserData(data){
     const out = {status: "OK"};
     if ("fio" in data && "phone" in data && "email" in data && "refer" in data){
         if (!(data["phone"].match(/^[0-9]+$/) != null) || data["email"].length < 7){
-            out["phone"] = "incorrect phone";
+            out["phone"] = "incorrect";
             out["status"] = "ERROR";
             out["reason"] = "incorrect data";
         }
         if (data["email"].length <= 10 || !(!!~data["email"].indexOf("@"))){
-            out["email"] = "incorrect email";
+            out["email"] = "incorrect";
             out["status"] = "ERROR";
             out["reason"] = "incorrect data";
         }
         const fio = data["fio"].split(" ");
         if (fio.length != 3){
-            out["fio"] = "incorrect fio";
+            out["fio"] = "incorrect";
             out["status"] = "ERROR";
             out["reason"] = "incorrect data";
         }
