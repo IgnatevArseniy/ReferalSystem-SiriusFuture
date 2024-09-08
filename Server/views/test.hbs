@@ -150,7 +150,7 @@
         function TestLink(){
             link_lable.style.color = "red";
             link_lable.innerText = "";
-            xhr.open("GET", "http://localhost:1000/createReferLink/"+link_jwt.value);
+            xhr.open("GET", "http://localhost:1000/createReferLink?token="+link_jwt.value);
             xhr.send(null); 
         }
         function TestAddPay(){
@@ -164,7 +164,7 @@
         function TestRefStat(){
             ref_lable.style.color = "red";
             ref_lable.innerText = "";
-            xhr.open("GET", "http://localhost:1000/referStatistics/"+ref_jwt.value);
+            xhr.open("GET", "http://localhost:1000/referStatistics?token="+ref_jwt.value);
             xhr.send(null); 
         }
         function GetDataInBD(){

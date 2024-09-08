@@ -41,7 +41,7 @@ describe("/createReferLink - проверка генерации реферал�
   });
   it('проверка с правильным jwt', (done) =>{
       chai.request(api)
-        .get('/createReferLink/'+main_jwt)
+        .get('/createReferLink?token='+main_jwt)
         .end((err, res)=>{
           res.should.have.status(200);
           res.body.should.have.status("OK");
@@ -51,7 +51,7 @@ describe("/createReferLink - проверка генерации реферал�
   it('проверка с не существующим id', (done) =>{
     const JWT = "no correct";
     chai.request(api)
-      .get('/createReferLink/'+JWT)
+      .get('/createReferLink?token='+JWT)
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("ERROR");
@@ -61,7 +61,7 @@ describe("/createReferLink - проверка генерации реферал�
   it('проверка с не правильным jwt', (done) =>{
     const JWT = GenJWT(header, {id: "nooo"});;
     chai.request(api)
-      .get('/createReferLink/'+JWT)
+      .get('/createReferLink?token='+JWT)
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("ERROR");
@@ -188,7 +188,7 @@ describe("/referStatistics - проверка получения правиль�
   });
   it("Проверим реферальную статитстику главного аккаунта. Должно быть все по нулям", (done)=>{
     chai.request(api)
-      .get("/referStatistics/"+main_jwt)
+      .get("/referStatistics?token="+main_jwt)
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("OK");
@@ -212,7 +212,7 @@ describe("/referStatistics - проверка получения правиль�
   });
   it("Проверим реферальную статитстику главного аккаунта. Должно быть два реферала", (done)=>{
     chai.request(api)
-      .get("/referStatistics/"+main_jwt)
+      .get("/referStatistics?token="+main_jwt)
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("OK");
@@ -234,7 +234,7 @@ describe("/referStatistics - проверка получения правиль�
   str+="принесенное кол-во уроков: 4, процентное количество рефералов, купивших абонемент: 50%";
   it(str, (done)=>{
     chai.request(api)
-      .get("/referStatistics/"+main_jwt)
+      .get("/referStatistics?token="+main_jwt)
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("OK");
@@ -246,7 +246,7 @@ describe("/referStatistics - проверка получения правиль�
   });
   it('проверка с не правильным jwt', (done) =>{
     chai.request(api)
-      .get("/referStatistics/"+"fdhgfghfhgf.hfghd.hfghfd")
+      .get("/referStatistics?token="+"fdhgfghfhgf.hfghd.hfghfd")
       .end((err, res)=>{
         res.should.have.status(200);
         res.body.should.have.status("ERROR");

@@ -11,8 +11,8 @@ const header={
 exports.createReferLink = async function(req, res){
     res.append("Access-Control-Allow-Origin", "*");
     try {
-        if (VerifyJWT(req.params.token)){
-            const parse = req.params.token.split(".");
+        if (VerifyJWT(req.query.token)){
+            const parse = req.query.token.split(".");
             const body = JSON.parse(atob(parse[1]));
             if ("id" in body){
                 var is = await database.IsThereElementInTable("users", "id", body["id"]);
@@ -133,8 +133,8 @@ exports.createNewUser = function(req,res){
 exports.referStatistics = async function(req, res){
     res.append("Access-Control-Allow-Origin", "*");
     try {
-        if (VerifyJWT(req.params.token)){
-            const parse = req.params.token.split(".");
+        if (VerifyJWT(req.query.token)){
+            const parse = req.query.token.split(".");
             const body = JSON.parse(atob(parse[1]));
             if ("id" in body){
                 const is = await database.IsThereElementInTable("users", "id", body["id"]);
