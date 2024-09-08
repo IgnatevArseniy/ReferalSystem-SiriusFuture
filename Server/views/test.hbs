@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тестирование</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<body>
+    <div class="tests_out">
+        <div class="test">
+            <div class="in">
+                <h2>Тестирование генерации реферальной ссылки</h2>
+                <input id="link" placeholder="JWT"/><br><br>
+                <div class="lable_in">
+                    <div id="link_lable" class="lable"></div>
+                </div>
+                <button onpointerdown="TestLink()">Send</button>
+            </div>
+        </div>
+        <div class="test">
+            <div class="in">
+                <h2>Тестирование добавления оплаты</h2>
+                <input id="pay_jwt" placeholder="JWT"/><br><br>
+                <input id="pay_lessons" placeholder="payed_lessons"/><br><br>
+                <div class="lable_in">
+                    <div id="pay_lable" class="lable"></div>
+                </div>
+                <button onpointerdown="TestAddPay()">Send</button>
+            </div>
+        </div>
+        <div class="test">
+            <div class="in">
+                <h2>Тестирование получения реферальной статистки</h2>
+                <input id="ref_jwt" placeholder="JWT"/><br><br>
+                <div class="lable_in">
+                    <div id="ref_lable" class="lable"></div>
+                </div>
+                <button onpointerdown="TestRefStat()">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="database">
+        <h2>DataBase</h2>
+        <div class="database_bord">
+            <table id="table">
+                <tr>
+                    <td>ID</td>
+                    <td>ФИО</td>
+                    <td>Телефон</td>
+                    <td>Email</td>
+                    <td>Реферал</td>
+                    <td>Уроки</td>
+                    <td>JWT</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script> 
+        const xhr = new XMLHttpRequest;
+
+        GetDataInBD();
+
+        const link_jwt = document.getElementById("link")
+        const link_lable = document.getElementById("link_lable");
+
+        const pay_jwt = document.getElementById("pay_jwt");
+        const pay_lessons = document.getElementById("pay_lessons");
+        const pay_lable = document.getElementById("pay_lable");
+
+        const ref_jwt = document.getElementById("ref_jwt");
+        const ref_lable = document.getElementById("ref_lable");
+
+        const table = document.getElementById("table");
+        var data_table = {};
+        var tr_col = {};
+
+        xhr.onload = ()=>{
+            if (xhr.status < 400 && xhr.DONE){
+                var data_api = JSON.parse(xhr.response);
+                if (data_api["command"] == "createReferLink"){
+                    const dataString = JSON.stringify(data_api, null, 2);
+                    link_lable.style.textAlign = "left";
+                    if (data_api["status"] == "OK")
+                        link_lable.style.color = "green";
+                    link_lable.innerText = dataString;
+                }else if(data_api["command"] == "addPay"){
+                    const dataString = JSON.stringify(data_api, null, 2);
+                    pay_lable.style.textAlign = "left";
+                    if (data_api["status"] == "OK")
+                        pay_lable.style.color = "green";
+                    pay_lable.innerText = dataString;
+                }else if(data_api["command"] == "referStatistics"){
+                    const dataString = JSON.stringify(data_api, null, 2);
+                    ref_lable.style.textAlign = "left";
+                    if (data_api["status"] == "OK")
+                        ref_lable.style.color = "green";
+                    ref_lable.innerText = dataString;
+                }
+                if(data_api["command"] == "getDataInDB"){
+                    ClearData();
+                    data_table = data_api["result"];
+                    for (key in data_table){
+                        var tr = document.createElement("tr");
+                        tr_col[key] = tr;
+                        var td_id = document.createElement("td"); 
+                        var td_fio = document.createElement("td");
+                        var td_phone = document.createElement("td");  
+                        var td_email = document.createElement("td");
+                        var td_refer = document.createElement("td");
+                        var td_lessons = document.createElement("td");
+                        var td_jwt = document.createElement("td");
+
+                        td_id.innerText = data_table[key]["id"]; 
+                        td_fio.innerText = data_table[key]["fio"]; 
+                        td_phone.innerText = data_table[key]["phone"]; 
+                        td_email.innerText = data_table[key]["email"]; 
+                        td_refer.innerText = data_table[key]["refer"];
+                        td_lessons.innerText = data_table[key]["lessons"];
+
+                        var div = document.createElement("div");
+                        div.style.display = "flex";
+                        div.style.alignItems = "center";
+                        var p = document.createElement("p");
+                        p.style.margin = 0;
+                        p.innerText = data_table[key]["jwt"].slice(0, 20)+"...";
+                        var but = document.createElement("button");
+                        but.setAttribute("onpointerdown", "CopyJWT("+key+")");
+                        but.innerText = "copy";
+                        but.style.height = "30px";
+                        but.style.position = "relative"
+                        but.style.marginLeft = "5px"
+                        div.appendChild(p);
+                        div.appendChild(but);
+                        td_jwt.appendChild(div);
+
+                        tr.appendChild(td_id);
+                        tr.appendChild(td_fio);
+                        tr.appendChild(td_phone);
+                        tr.appendChild(td_email);
+                        tr.appendChild(td_refer);
+                        tr.appendChild(td_lessons);
+                        tr.appendChild(td_jwt);
+
+                        table.appendChild(tr);
+                    }
+                }else
+                    GetDataInBD();
+            }
+        }
+        function TestLink(){
+            link_lable.style.color = "red";
+            link_lable.innerText = "";
+            xhr.open("GET", "http://localhost:1000/createReferLink/"+link_jwt.value);
+            xhr.send(null); 
+        }
+        function TestAddPay(){
+            pay_lable.style.color = "red";
+            pay_lable.innerText = "";
+            const out = {token: pay_jwt.value, lessons: pay_lessons.value}
+            xhr.open("POST", "http://localhost:1000/addPay");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify(out)); 
+        }
+        function TestRefStat(){
+            ref_lable.style.color = "red";
+            ref_lable.innerText = "";
+            xhr.open("GET", "http://localhost:1000/referStatistics/"+ref_jwt.value);
+            xhr.send(null); 
+        }
+        function GetDataInBD(){
+            xhr.open("GET", "http://localhost:1000/getDataInDB");
+            xhr.send(null); 
+        }
+        function CopyJWT(key){
+            navigator.clipboard.writeText(data_table[key]["jwt"]);
+        }
+        function ClearData(){
+            for (key in tr_col){
+                tr_col[key].remove();
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Oswald:wght@200..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Wittgenstein:ital,wght@0,400..900;1,400..900&display=swap');
+        .tests_out{
+            width: 100%;
+            position: relative;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        .test{
+            font-family: Roboto;
+            position: relative;
+            margin: 10px;
+            border: 1px solid;
+            text-align: center;
+            align-items: center;
+            border-radius: 10px;
+        }
+        .in{
+            position: relative;
+            margin: 10px;
+        }
+        .lable_in{
+            position: relative;
+            margin: 10px;
+            color: red;
+        }
+        table {
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid black;
+        }
+        td {
+            text-align: left;
+            padding: 10px;
+            border: 1px solid black;
+        }
+        th {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid black;
+        }
+        .database h2{
+            text-align: center;
+        }
+        .database_bord{
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</body>
+<html>

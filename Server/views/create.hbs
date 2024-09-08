@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создание аккаунта пользователя</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <div class="cont">
+        <div class="bord">
+            <div class="in">
+                <h1>Создать аккаунт</h1>
+                <form action="createNewUser" method="POST">
+                    <label>ФИО</label>
+                    <input name="fio" pattern="^[A-Za-zА-Яа-яЁё\s]+$" placeholder="Васильев Василий Васильевич"/><br><br>
+                    <label>Телефон</label>
+                    <input name="phone" type="tel" placeholder="89999999999"  pattern="8[0-9]{3}[0-9]{3}[0-9]{2}[0-9]{2}"/><br><br>
+                    <label>Email</label>
+                    <input name="email" type="email"/><br><br>
+                    <input type = "hidden" name = "refer" value = "" id="refer"/>
+                    <input type="submit" value="Отправить" />
+                </form>
+            </div>
+        </div>
+    </div>
+    <script> 
+        const refer = document.getElementById("refer");
+        var id = window.location.href.split("ref=");
+        if (id.length == 2)
+            refer.value = id[1];
+    </script>
+    <style>
+        .cont{
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .bord{
+            border: 1px solid;
+            border-radius: 10px;
+            text-align: center;
+            align-items: center;
+        }
+        .in{
+            position: relative;
+            margin: 20px;
+        }
+    </style>
+</body>
+<html>

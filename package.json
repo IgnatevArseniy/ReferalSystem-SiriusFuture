@@ -1,0 +1,19 @@
+{
+  "name": "sirius-referal-programm",
+  "version": "1.0.0",
+  "main": "api.js",
+  "scripts": {},
+  "author": "ArseniyIgnatev",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.19.2",
+    "hbs": "^4.2.0",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "chai": "^4.5.0",
+    "chai-http": "^2.0.1",
+    "mocha": "^2.4.5"
+  }
+}
